@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/fallrising/fleet-catalog/internal/api"
+	"github.com/fallrising/fleet-catalog/internal/cf"
 	"github.com/fallrising/fleet-catalog/internal/config"
 	"github.com/fallrising/fleet-catalog/internal/db"
 	"github.com/fallrising/fleet-catalog/internal/ingress"
@@ -44,8 +45,9 @@ func main() {
 	}
 	var rec ingress.Reconciler = ingress.Noop{}
 	if cfg.CFAPIToken != "" {
-		// PR-5 swaps in the Cloudflare client when CF_API_TOKEN is set.
-		rec = ingress.Noop{}
+		cfc := cf.New(cfg, st, log)
+		rec = cfc
+		go cfc.RunWorkers(context.Background())
 	}
 	srvAPI := api.New(cfg, st, rec, nil)
 	httpSrv := &http.Server{Addr: cfg.Listen, Handler: srvAPI}
