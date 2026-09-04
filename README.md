@@ -1,3 +1,12 @@
+> ## ⚠️ 此 repository 已退役（2026-09-04）
+>
+> 內容已遷移至 [`newclear`](https://github.com/fallrising/newclear) 的 [`specs/fleet`](https://github.com/fallrising/newclear/tree/main/specs/fleet)。
+>
+> 本 repository 保留為**唯讀歷史存放地**——完整 git 歷史仍在此處,
+> 但新的開發請至後繼者。
+
+---
+
 # Fleet Catalog
 
 Personal multi-VPS service catalog and thin control plane.
