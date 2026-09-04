@@ -1,0 +1,8 @@
+# syntax=docker/dockerfile:1
+# build from repo root so deploy/fleet-agent/docker-compose.yml is in context
+FROM docker:27.5.1-cli
+RUN apk add --no-cache docker-cli-compose \
+ && docker compose version
+COPY deploy/fleet-agent/docker-compose.yml /usr/local/share/fleet/agent-stack.yml
+COPY fleet-agent /usr/local/bin/fleet-agent
+ENTRYPOINT ["/usr/local/bin/fleet-agent"]
