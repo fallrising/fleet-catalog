@@ -1,4 +1,3 @@
-# Control-plane compose. cloudflared sidecar is filled in PR-7.
 name: fleet-control
 services:
   fleetd:
@@ -13,13 +12,13 @@ services:
       FLEETD_DB: /var/lib/fleetd/fleet.db
     volumes:
       - fleetd-data:/var/lib/fleetd
-  # cloudflared:
-  #   image: cloudflare/cloudflared:2024.12.2
-  #   user: "65532:65532"
-  #   network_mode: host
-  #   restart: unless-stopped
-  #   environment:
-  #     TUNNEL_TOKEN: ${FLEET_BOOTSTRAP_TUNNEL_TOKEN}
-  #   command: ["tunnel", "run"]
+  cloudflared:
+    image: cloudflare/cloudflared:2024.12.2
+    user: "65532:65532"
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      TUNNEL_TOKEN: ${FLEET_BOOTSTRAP_TUNNEL_TOKEN}
+    command: ["tunnel", "run"]
 volumes:
   fleetd-data:

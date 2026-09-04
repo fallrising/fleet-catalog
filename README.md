@@ -12,12 +12,17 @@ This is a Phase 1 MVP. The source of truth for protocols, schemas, and APIs is *
 
 ## Status
 
-Phase 1 in progress. `fleet.yaml` v1 schema and validator are in-tree (`schemas/`, `internal/fleetfile`).
+Phase 1 MVP: `fleet.yaml` validator, `fleetd` + SQLite catalog API, `fleet-agent` Compose reconcile, Cloudflare ingress, HTMX UI, GHA deploy template.
 
 ```bash
 make test
+make build
 make validate-schema
 ```
+
+Binaries: `bin/fleetd`, `bin/fleet-agent` (`CGO_ENABLED=0`). Images: `make image-fleetd` / `make image-agent`.
+
+First node: [docs/bootstrap.md](docs/bootstrap.md) (WARP Split Tunnel + delete Local Domain Fallback).
 
 ## Scale
 
@@ -28,7 +33,7 @@ Designed for 2–10 pet VPS, 5–40 services, one operator. Not Kubernetes.
 | Doc | What |
 | --- | --- |
 | [docs/SDD.md](docs/SDD.md) | Software design document |
-| [docs/bootstrap.md](docs/bootstrap.md) | First-node / WARP checklist (after PR-7) |
+| [docs/bootstrap.md](docs/bootstrap.md) | First-node / WARP checklist |
 | `examples/hello-healthz` | Minimal `/healthz` workload |
 | `contrib/github-actions/deploy.yml` | Copy into a workload repo |
 
