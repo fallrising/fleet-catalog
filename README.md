@@ -12,7 +12,12 @@ This is a Phase 1 MVP. The source of truth for protocols, schemas, and APIs is *
 
 ## Status
 
-Phase 1 implementation in progress (schema → SQLite → API → agent → Cloudflare → UI → bootstrap).
+Phase 1 in progress. `fleet.yaml` v1 schema and validator are in-tree (`schemas/`, `internal/fleetfile`).
+
+```bash
+make test
+make validate-schema
+```
 
 ## Scale
 
