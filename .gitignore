@@ -8,6 +8,6 @@
 .vscode/
 *.swp
 coverage.out
-fleetd
-fleet-agent
+/fleetd
+/fleet-agent
 /examples/hello-healthz/hello-healthz
