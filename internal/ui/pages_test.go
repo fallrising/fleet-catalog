@@ -53,6 +53,41 @@ func TestCatalogRenders(t *testing.T) {
 	}
 }
 
+func TestServiceRollbackButton(t *testing.T) {
+	sqldb, err := db.OpenMemory()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer sqldb.Close()
+	st := store.New(sqldb)
+	st.Now = func() time.Time { return time.Date(2026, 9, 4, 12, 0, 0, 0, time.UTC) }
+	if err := st.CreateNode(&model.Node{ID: "vps-a"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := st.InsertService(&model.Service{
+		Name: "hello", NodeID: "vps-a", Hostname: "hello.example.com",
+		ExposeMode: "public", DesiredState: "running", HostPort: 20001, ContainerPort: 8080,
+		FleetJSON: "{}", IngressStatus: "na", CurrentReleaseID: "rel_current",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := st.InsertRelease(&model.Release{ID: "rel_old", Service: "hello", Image: "img:old", GitSHA: "aaa"}); err != nil {
+		t.Fatal(err)
+	}
+	p, err := New(st)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr := httptest.NewRecorder()
+	p.Service(rr, httptest.NewRequest(http.MethodGet, "/services/hello", nil), "hello")
+	if rr.Code != 200 {
+		t.Fatal(rr.Body.String())
+	}
+	if !strings.Contains(rr.Body.String(), "Rollback") {
+		t.Fatal(rr.Body.String())
+	}
+}
+
 func TestStaticHTMX(t *testing.T) {
 	sqldb, err := db.OpenMemory()
 	if err != nil {

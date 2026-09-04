@@ -120,6 +120,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if id == "" {
 		id = newRequestID()
 	}
+	w.Header().Set("X-Request-Id", id)
 	ww := &statusWriter{ResponseWriter: w, status: 200}
 	start := time.Now()
 	s.mux.ServeHTTP(ww, r)

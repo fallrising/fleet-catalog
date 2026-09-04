@@ -57,15 +57,39 @@ func (c *Client) do(ctx context.Context, method, path string, body any, q url.Va
 		}
 		rdr = bytes.NewReader(b)
 	}
-	req, err := http.NewRequestWithContext(ctx, method, u, rdr)
-	if err != nil {
-		return nil, err
+	var resp *http.Response
+	var lastErr error
+	for attempt := 0; attempt < 4; attempt++ {
+		if rdr != nil {
+			if br, ok := rdr.(*bytes.Reader); ok {
+				_, _ = br.Seek(0, io.SeekStart)
+			}
+		}
+		req, err := http.NewRequestWithContext(ctx, method, u, rdr)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Authorization", "Bearer "+c.cfg.CFAPIToken)
+		req.Header.Set("Content-Type", "application/json")
+		resp, lastErr = c.http.Do(req)
+		if lastErr != nil {
+			return nil, lastErr
+		}
+		if resp.StatusCode != http.StatusTooManyRequests {
+			break
+		}
+		_ = resp.Body.Close()
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(time.Duration(1<<attempt) * time.Second):
+		}
 	}
-	req.Header.Set("Authorization", "Bearer "+c.cfg.CFAPIToken)
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := c.http.Do(req)
-	if err != nil {
-		return nil, err
+	if lastErr != nil {
+		return nil, lastErr
+	}
+	if resp == nil {
+		return nil, fmt.Errorf("cf %s %s: empty response", method, path)
 	}
 	defer resp.Body.Close()
 	b, _ := io.ReadAll(resp.Body)

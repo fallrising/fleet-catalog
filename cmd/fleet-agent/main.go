@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"regexp"
 	"syscall"
 	"time"
 
@@ -16,8 +17,17 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+var redactKeys = regexp.MustCompile(`(?i)token|password|secret|authorization|cookie`)
+
+func redactAttr(_ []string, a slog.Attr) slog.Attr {
+	if redactKeys.MatchString(a.Key) {
+		a.Value = slog.StringValue("[redacted]")
+	}
+	return a
+}
+
 func main() {
-	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	log := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{ReplaceAttr: redactAttr}))
 	cfg, err := loadAgent()
 	if err != nil {
 		log.Error("config", "err", err.Error())

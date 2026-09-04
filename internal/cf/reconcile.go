@@ -413,8 +413,6 @@ func (c *Client) upsertHostnameRoute(ctx context.Context, svc ingress.ServiceVie
 }
 
 func (c *Client) drift(ctx context.Context) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
 	nodes, err := c.st.ListNodes()
 	if err != nil {
 		return
@@ -424,17 +422,42 @@ func (c *Client) drift(ctx context.Context) {
 		if n.TunnelID == "" || n.TunnelID == c.cfg.BootstrapTunnelID {
 			continue
 		}
-		if err := c.reconcileTunnelLocked(ctx, n.TunnelID); err == nil {
+		if err := c.ReconcileTunnel(ctx, n.TunnelID); err == nil {
 			repaired = true
+		} else {
+			c.log.Error("cf_error", "msg", "drift tunnel", "tunnel_id", n.TunnelID, "err", err.Error())
 		}
+	}
+	svcs, err := c.st.ListServices()
+	if err != nil {
+		return
+	}
+	for _, s := range svcs {
+		n, err := c.st.GetNode(s.NodeID)
+		if err != nil {
+			continue
+		}
+		view := ingress.ServiceView{
+			Name:            s.Name,
+			NodeID:          s.NodeID,
+			TunnelID:        n.TunnelID,
+			DesiredState:    s.DesiredState,
+			ExposeMode:      s.ExposeMode,
+			Hostname:        s.Hostname,
+			HostPort:        s.HostPort,
+			ContainerPort:   s.ContainerPort,
+			DNSRecordID:     s.CFDNSRecordID,
+			AccessAppID:     s.CFAccessAppID,
+			AccessPolicyID:  s.CFAccessPolicyID,
+			HostnameRouteID: s.CFHostnameRouteID,
+		}
+		if err := c.ReconcileService(ctx, view); err != nil {
+			c.log.Error("cf_error", "msg", "drift service", "service", s.Name, "err", err.Error())
+			continue
+		}
+		repaired = true
 	}
 	if repaired {
 		c.log.Info("cf_drift_repaired")
-		svcs, _ := c.st.ListServices()
-		for _, s := range svcs {
-			if s.IngressStatus != "na" {
-				_ = c.st.SetIngress(s.Name, "ok", "", s.CFDNSRecordID, s.CFAccessAppID, s.CFAccessPolicyID, s.CFHostnameRouteID)
-			}
-		}
 	}
 }

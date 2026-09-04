@@ -5,17 +5,17 @@
 <p>desired {{.View.DesiredState}} · health <span class="health-{{.View.Health}}">{{.View.Health}}</span> · generation {{.View.Generation}} / applied {{.View.AppliedGeneration}} · ingress {{.View.IngressStatus}}</p>
 <p>
   {{if eq .View.DesiredState "stopped"}}
-  <button hx-post="/api/v1/services/{{.View.Name}}/start">Start</button>
+  <button hx-post="/api/v1/services/{{.View.Name}}/start" hx-refresh="true">Start</button>
   {{else}}
-  <button hx-post="/api/v1/services/{{.View.Name}}/stop">Stop</button>
+  <button hx-post="/api/v1/services/{{.View.Name}}/stop" hx-refresh="true">Stop</button>
   {{end}}
-  <button hx-post="/api/v1/services/{{.View.Name}}/redeploy">Redeploy</button>
+  <button hx-post="/api/v1/services/{{.View.Name}}/redeploy" hx-refresh="true">Redeploy</button>
 </p>
 <h2>Instance</h2>
 <pre>{{.InstancePretty}}</pre>
 <h2>Releases</h2>
 <table>
-  <thead><tr><th>ID</th><th>Image</th><th>SHA</th><th>At</th></tr></thead>
+  <thead><tr><th>ID</th><th>Image</th><th>SHA</th><th>At</th><th></th></tr></thead>
   <tbody>
     {{range .Releases}}
     <tr>
@@ -23,6 +23,14 @@
       <td>{{.Image}}</td>
       <td>{{.GitSHA}}</td>
       <td>{{.CreatedAt}}</td>
+      <td>
+        {{if ne .ID $.CurrentReleaseID}}
+        <button hx-post="/api/v1/services/{{$.View.Name}}/deploy"
+                hx-headers='{"Content-Type": "application/json"}'
+                hx-vals='{"release_id": "{{.ID}}"}'
+                hx-refresh="true">Rollback</button>
+        {{end}}
+      </td>
     </tr>
     {{end}}
   </tbody>

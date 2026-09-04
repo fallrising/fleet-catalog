@@ -282,3 +282,31 @@ func TestNoTeamnetCIDROnPrivate(t *testing.T) {
 		t.Fatalf("expected hostname route POST: %v", fake.reqs)
 	}
 }
+
+func TestRetry429(t *testing.T) {
+	n := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		n++
+		if n == 1 {
+			w.WriteHeader(http.StatusTooManyRequests)
+			_, _ = w.Write([]byte(`{"success":false,"errors":[{"message":"rate"}]}`))
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]any{"success": true, "result": map[string]any{"id": "ok"}})
+	}))
+	t.Cleanup(srv.Close)
+	c, _ := testClient(t, srv)
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+	defer cancel()
+	res, err := c.do(ctx, http.MethodGet, "/accounts/acct/cfd_tunnel", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n < 2 {
+		t.Fatalf("retries=%d", n)
+	}
+	if !strings.Contains(string(res), "ok") {
+		t.Fatalf("%s", res)
+	}
+}

@@ -110,11 +110,12 @@ func (p *Pages) Service(w http.ResponseWriter, r *http.Request, name string) {
 	rels, _ := p.st.ListReleases(name)
 	inst, _ := p.st.GetInstance(name)
 	ib, _ := json.MarshalIndent(inst, "", "  ")
-	aud, _ := p.st.ListAudit(20)
+	aud, _ := p.st.ListAuditForService(name, 20)
 	ab, _ := json.MarshalIndent(aud, "", "  ")
 	p.render(w, "service", map[string]any{
 		"Title": name, "View": p.rowOf(svc), "Releases": rels,
-		"InstancePretty": string(ib), "AuditPretty": string(ab),
+		"CurrentReleaseID": svc.CurrentReleaseID,
+		"InstancePretty":   string(ib), "AuditPretty": string(ab),
 	})
 }
 

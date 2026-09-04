@@ -157,7 +157,18 @@ func (s *Store) ListAudit(limit int) ([]model.AuditEvent, error) {
 	if limit <= 0 {
 		limit = 50
 	}
-	rows, err := s.DB.Query(`SELECT id, at, actor, action, IFNULL(service,''), IFNULL(node_id,''), detail_json FROM audit_events ORDER BY id DESC LIMIT ?`, limit)
+	return s.listAudit(`SELECT id, at, actor, action, IFNULL(service,''), IFNULL(node_id,''), detail_json FROM audit_events ORDER BY id DESC LIMIT ?`, limit)
+}
+
+func (s *Store) ListAuditForService(service string, limit int) ([]model.AuditEvent, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+	return s.listAudit(`SELECT id, at, actor, action, IFNULL(service,''), IFNULL(node_id,''), detail_json FROM audit_events WHERE service = ? ORDER BY id DESC LIMIT ?`, service, limit)
+}
+
+func (s *Store) listAudit(q string, args ...any) ([]model.AuditEvent, error) {
+	rows, err := s.DB.Query(q, args...)
 	if err != nil {
 		return nil, err
 	}

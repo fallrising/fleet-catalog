@@ -12,7 +12,7 @@ This is a Phase 1 MVP. The source of truth for protocols, schemas, and APIs is *
 
 ## Status
 
-Phase 1 MVP: `fleet.yaml` validator, `fleetd` + SQLite catalog API, `fleet-agent` Compose reconcile, Cloudflare ingress, HTMX UI, GHA deploy template.
+Phase 1 code is on `main`. Unit tests run in GitHub Actions. Live VPS / Cloudflare bootstrap is operator-side — see [docs/bootstrap.md](docs/bootstrap.md).
 
 ```bash
 make test
