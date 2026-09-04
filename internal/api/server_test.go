@@ -16,6 +16,7 @@ import (
 	"github.com/fallrising/fleet-catalog/internal/ingress"
 	"github.com/fallrising/fleet-catalog/internal/store"
 	"github.com/fallrising/fleet-catalog/internal/token"
+	"github.com/fallrising/fleet-catalog/internal/ui"
 )
 
 type testEnv struct {
@@ -354,6 +355,25 @@ func TestCIDeployUpsertAndForbiddenCreate(t *testing.T) {
 	})
 	if rr.Code != 201 {
 		t.Fatalf("ci deploy %d %s", rr.Code, rr.Body.String())
+	}
+}
+
+func TestUIPagesNoHTMLOnAPIHost(t *testing.T) {
+	e := newTest(t)
+	p, err := ui.New(e.st)
+	if err != nil {
+		t.Fatal(err)
+	}
+	e.s.html = p
+	e.s.mux = http.NewServeMux()
+	e.s.routes()
+	rr := e.do(t, http.MethodGet, "/", "fleet-api.example.com", e.op, "", nil)
+	if rr.Code != 401 || strings.Contains(rr.Body.String(), "<table") {
+		t.Fatalf("%d %s", rr.Code, rr.Body.String())
+	}
+	rr = e.do(t, http.MethodGet, "/", "fleet.example.com", "", e.op, nil)
+	if rr.Code != 200 || !strings.Contains(rr.Body.String(), "Catalog") {
+		t.Fatalf("%d %s", rr.Code, rr.Body.String())
 	}
 }
 

@@ -78,6 +78,9 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /{$}", s.htmlAuth(s.handleCatalog))
 	s.mux.HandleFunc("GET /nodes/{id}", s.htmlAuth(s.handleNodePage))
 	s.mux.HandleFunc("GET /services/{name}", s.htmlAuth(s.handleServicePage))
+	if ss, ok := s.html.(interface{ Static() http.Handler }); ok && s.html != nil {
+		s.mux.Handle("GET /static/", ss.Static())
+	}
 
 	s.mux.HandleFunc("POST /api/v1/tokens", op(s.handleCreateToken))
 	s.mux.HandleFunc("GET /api/v1/tokens", op(s.handleListTokens))

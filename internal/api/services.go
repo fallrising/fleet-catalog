@@ -243,7 +243,7 @@ func (s *Server) mutateDesired(w http.ResponseWriter, r *http.Request, fn func(s
 		return
 	}
 	s.enqueueService(name)
-	if strings.Contains(r.Header.Get("Accept"), "text/html") && s.html != nil {
+	if s.html != nil && (strings.Contains(r.Header.Get("Accept"), "text/html") || r.Header.Get("HX-Request") == "true") {
 		s.html.ServiceRow(w, r, name)
 		return
 	}

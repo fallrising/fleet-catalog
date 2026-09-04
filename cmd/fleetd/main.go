@@ -15,6 +15,7 @@ import (
 	"github.com/fallrising/fleet-catalog/internal/db"
 	"github.com/fallrising/fleet-catalog/internal/ingress"
 	"github.com/fallrising/fleet-catalog/internal/store"
+	"github.com/fallrising/fleet-catalog/internal/ui"
 	"github.com/fallrising/fleet-catalog/internal/version"
 )
 
@@ -49,7 +50,12 @@ func main() {
 		rec = cfc
 		go cfc.RunWorkers(context.Background())
 	}
-	srvAPI := api.New(cfg, st, rec, nil)
+	pages, err := ui.New(st)
+	if err != nil {
+		log.Error("ui", "err", err.Error())
+		os.Exit(1)
+	}
+	srvAPI := api.New(cfg, st, rec, pages)
 	httpSrv := &http.Server{Addr: cfg.Listen, Handler: srvAPI}
 	go func() {
 		log.Info("listen", "addr", cfg.Listen, "version", version.Version)
